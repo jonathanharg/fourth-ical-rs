@@ -7,7 +7,7 @@ use colleagues::Person;
 use icalendar::{Calendar, Component, Event, EventLike};
 use reqwest::cookie::Jar;
 use reqwest::Client;
-use serde::{Deserialize};
+use serde::Deserialize;
 use std::sync::Arc;
 use time::OffsetDateTime;
 use urlencoding::encode;
@@ -47,7 +47,7 @@ async fn main() {
             match get_shifts(&client).await {
                 Ok(shifts) => {
                     println!("Responding with ical");
-                    return shifts_to_ical(shifts);
+                    shifts_to_ical(shifts)
                 }
                 Err(_) => {
                     login::get_cookie(&client).await;
@@ -55,7 +55,7 @@ async fn main() {
                         .await
                         .expect("Expected second attempt will log in");
                     println!("Responding with ical");
-                    return shifts_to_ical(shifts);
+                    shifts_to_ical(shifts)
                 }
             }
         }),
@@ -106,7 +106,7 @@ async fn get_shifts(client: &Client) -> Result<Vec<Shift>, reqwest::Error> {
         .collect();
 
     for shift in &mut shifts {
-        shift.working_with = colleagues::working_with(&client, &shift.id).await;
+        shift.working_with = colleagues::working_with(client, &shift.id).await;
     }
 
     Ok(shifts)
@@ -139,7 +139,7 @@ fn shifts_to_ical(shifts: Vec<Shift>) -> String {
         let desc = generate_description(&shift);
         let event = Event::new()
             .summary("Zizzi Shift")
-            .description(&*generate_description(&shift))
+            .description(&generate_description(&shift))
             .starts(starts)
             .ends(ends)
             .location(&shift.location)
@@ -165,7 +165,7 @@ fn generate_description(shift: &Shift) -> String {
     let my_length = time_diff(&starts, &ends);
     let my_role = &shift.role;
     let message = {
-        if shift.message != "" {
+        if !shift.message.is_empty() {
             format!("\n{}", &shift.message)
         } else {
             String::from("")

@@ -41,10 +41,7 @@ pub enum Role {
 }
 
 fn is_foh(role: &Role) -> bool {
-    match role {
-        Role::GM | Role::AM | Role::SU | Role::FOH => true,
-        _ => false,
-    }
+    matches!(role, Role::GM | Role::AM | Role::SU | Role::FOH)
 }
 
 derive_display_from_serialize!(Role);
@@ -68,3 +65,4 @@ pub async fn working_with(client: &Client, shift_id: &u32) -> Vec<Person> {
         .map(|p| serde_json::from_value(p.clone()).expect("Expected person"))
         .collect()
 }
+
