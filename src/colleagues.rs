@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_plain::derive_display_from_serialize;
@@ -8,61 +9,60 @@ pub struct Person {
     #[serde(rename = "employeeName")]
     pub name: String,
     pub role: Role,
-    // #[serde(with = "time::serde::rfc3339", rename = "shiftStartDateTime")]
-    // start: OffsetDateTime,
-    // #[serde(with = "time::serde::rfc3339", rename = "shiftEndDateTime")]
-    // end: OffsetDateTime,
+    #[serde(rename = "shiftStartDateTime", with = "colleague_date_format")]
+    pub start: DateTime<Utc>,
+    #[serde(rename = "shiftEndDateTime", with = "colleague_date_format")]
+    pub end: DateTime<Utc>,
     #[serde(rename = "sameRole")]
     same_role: bool,
     #[serde(rename = "sameShift")]
     same_shift: bool,
 }
 
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Deserialize, Serialize)]
-pub enum Role {
-    #[serde(rename = "Zizzi General Manager")]
-    GM,
-    #[serde(rename = "Zizzi Assistant Manager")]
-    AM,
-    #[serde(rename = "Zizzi Supervisor")]
-    SU,
-    #[serde(rename = "Zizzi FOH Team Member")]
-    FOH,
-    #[serde(rename = "Zizzi Head Chef")]
-    HC,
-    #[serde(rename = "Zizzi Assistant Chef")]
-    AC,
-    #[serde(rename = "Zizzi Section Chef 3")]
-    C3,
-    #[serde(rename = "Zizzi Section Chef 2")]
-    C2,
-    #[serde(rename = "Zizzi Section Chef 1")]
-    C1,
+mod colleague_date_format {
+    use chrono::{DateTime, TimeZone, Utc};
+    use serde::{self, Deserialize, Deserializer};
+
+    const FORMAT: &'static str = "%Y-%m-%dT%H:%M:%S";
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        Utc.datetime_from_str(&s, FORMAT)
+            .map_err(serde::de::Error::custom)
+    }
 }
 
-fn is_foh(role: &Role) -> bool {
-    matches!(role, Role::GM | Role::AM | Role::SU | Role::FOH)
+#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Deserialize, Serialize)]
+pub enum Role {
+    #[serde(rename(deserialize = "Zizzi General Manager"))]
+    GM,
+    #[serde(rename(deserialize = "Zizzi Assistant Manager"))]
+    AM,
+    #[serde(rename(deserialize = "Zizzi Supervisor"))]
+    SU,
+    #[serde(rename(deserialize = "Zizzi FOH Team Member"))]
+    FOH,
+    #[serde(rename(deserialize = "Zizzi Head Chef"))]
+    HC,
+    #[serde(rename(deserialize = "Zizzi Assistant Chef"))]
+    AC,
+    #[serde(rename(deserialize = "Zizzi Section Chef 3"))]
+    C3,
+    #[serde(rename(deserialize = "Zizzi Section Chef 2"))]
+    C2,
+    #[serde(rename(deserialize = "Zizzi Section Chef 1"))]
+    C1,
 }
 
 derive_display_from_serialize!(Role);
 
-pub async fn working_with(client: &Client, shift_id: &u32) -> Vec<Person> {
-    let url = format!(
-        "https://api.fourth.com/api/myschedules/shifts/{}/workingwith",
-        shift_id
-    );
-    client
-        .get(url)
-        .send()
-        .await
-        .expect("Expected a result")
-        .json::<serde_json::Value>()
-        .await
-        .expect("Expected json response")
-        .as_array()
-        .expect("Colleagues should be an array")
-        .iter()
-        .map(|p| serde_json::from_value(p.clone()).expect("Expected person"))
-        .collect()
+impl Person {
+    pub fn is_foh(&self) -> bool {
+        matches!(self.role, Role::GM | Role::AM | Role::SU | Role::FOH)
+    }
 }
+
 

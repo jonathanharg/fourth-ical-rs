@@ -1,33 +1,16 @@
-#![allow(dead_code, unused_variables)]
-mod login;
+// #![allow(dead_code, unused_variables)]
 mod colleagues;
+mod login;
+mod shift;
 use axum::{routing::get, Router};
-use chrono::{DateTime, Datelike, Duration, TimeZone, Timelike, Utc};
+use chrono::{DateTime, Datelike, Duration, NaiveTime, Timelike, Utc};
 use colleagues::Person;
 use icalendar::{Calendar, Component, Event, EventLike};
-use reqwest::cookie::Jar;
-use reqwest::Client;
+use reqwest::{cookie::Jar, Client};
 use serde::Deserialize;
+use shift::Shift;
 use std::sync::Arc;
-use time::OffsetDateTime;
 use urlencoding::encode;
-
-#[derive(Deserialize, Debug)]
-struct Shift {
-    #[serde(rename = "itemId")]
-    id: u32,
-    #[serde(with = "time::serde::rfc3339", rename = "startDateTime")]
-    start: OffsetDateTime,
-    #[serde(with = "time::serde::rfc3339", rename = "endDateTime")]
-    end: OffsetDateTime,
-    #[serde(rename = "locationName")]
-    location: String,
-    #[serde(rename = "roleName")]
-    role: String,
-    message: String,
-    #[serde(skip)]
-    working_with: Vec<Person>,
-}
 
 #[tokio::main]
 async fn main() {
@@ -80,7 +63,6 @@ fn shift_api_url() -> String {
     format!("https://api.fourth.com/api/myschedules/schedule?%24orderby=StartDateTime+asc&%24top=50&fromDate={}&toDate={}", from, to)
 }
 
-// async fn get_shifts(client: &Client) -> Result<Vec<Shift>, Box<dyn Error>> {
 async fn get_shifts(client: &Client) -> Result<Vec<Shift>, reqwest::Error> {
     let url = shift_api_url();
     let mut shifts: Vec<Shift> = client
@@ -106,42 +88,20 @@ async fn get_shifts(client: &Client) -> Result<Vec<Shift>, reqwest::Error> {
         .collect();
 
     for shift in &mut shifts {
-        shift.working_with = colleagues::working_with(client, &shift.id).await;
+        shift.working_with = working_with(client, &shift.id).await;
     }
 
     Ok(shifts)
 }
 
-fn short_time(start_time: &DateTime<Utc>, end_time: &DateTime<Utc>) -> String {
-    format!(
-        "{}:{:02} - {}:{:02}",
-        start_time.hour(),
-        start_time.minute(),
-        end_time.hour(),
-        end_time.minute()
-    )
-}
-
-fn time_diff(start: &DateTime<Utc>, end: &DateTime<Utc>) -> String {
-    let diff = end.signed_duration_since(*start);
-    let mins = diff.num_minutes() % 60;
-    if mins == 0 {
-        return format!("{}h", diff.num_hours());
-    }
-    format!("{}h {}m", diff.num_hours(), mins)
-}
-
 fn shifts_to_ical(shifts: Vec<Shift>) -> String {
     let mut calendar = Calendar::new();
     for shift in shifts {
-        let starts = Utc.timestamp_opt(shift.start.unix_timestamp(), 0).unwrap();
-        let ends = Utc.timestamp_opt(shift.end.unix_timestamp(), 0).unwrap();
-        let desc = generate_description(&shift);
         let event = Event::new()
             .summary("Zizzi Shift")
-            .description(&generate_description(&shift))
-            .starts(starts)
-            .ends(ends)
+            .description(&shift.generate_description())
+            .starts(shift.start)
+            .ends(shift.end)
             .location(&shift.location)
             .done();
         calendar.push(event);
@@ -149,42 +109,26 @@ fn shifts_to_ical(shifts: Vec<Shift>) -> String {
     calendar.to_string()
 }
 
-fn generate_description(shift: &Shift) -> String {
-    // 17:00 - 21:00 (3h 40m)
-    // Role
-    // Message
-    //
-    // FOH:
-    // 12:00 - 15:00    First Last
-    // 17:00 - 21:00    Role
-    // 13:00 - 18:00    First Last
-    //                  Role
-    let starts = Utc.timestamp_opt(shift.start.unix_timestamp(), 0).unwrap();
-    let ends = Utc.timestamp_opt(shift.end.unix_timestamp(), 0).unwrap();
-    let my_times = short_time(&starts, &ends);
-    let my_length = time_diff(&starts, &ends);
-    let my_role = &shift.role;
-    let message = {
-        if !shift.message.is_empty() {
-            format!("\n{}", &shift.message)
-        } else {
-            String::from("")
-        }
-    };
-    let colleagues = shift
-        .working_with
-        // .sort_by(|a, b| a.role.cmp(&b.role))
+pub async fn working_with(client: &Client, shift_id: &u32) -> Vec<Person> {
+    let url = format!(
+        "https://api.fourth.com/api/myschedules/shifts/{}/workingwith",
+        shift_id
+    );
+    let mut people: Vec<Person> = client
+        .get(url)
+        .send()
+        .await
+        .expect("Expected a result")
+        .json::<serde_json::Value>()
+        .await
+        .expect("Expected json response")
+        .as_array()
+        .expect("Colleagues should be an array")
         .iter()
-        .map(|c| format!("{}\n{}", c.name, c.role))
-        .collect::<Vec<String>>()
-        .join("\n");
-
-    format!(
-        r#"{my_times} ({my_length})
-{my_role}{message}
-
-Working with:
-{colleagues}
-"#
-    )
+        .map(|p| serde_json::from_value(p.clone()).expect("Expected person"))
+        .collect();
+    people.sort_by(|a, b| a.start.cmp(&b.start));
+    people.sort_by(|a, b| a.name.cmp(&b.name));
+    people.sort_by(|a, b| a.role.cmp(&b.role));
+    people
 }
