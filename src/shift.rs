@@ -1,4 +1,4 @@
-use crate::Person;
+use crate::Employee;
 use chrono::{DateTime, NaiveTime, Timelike, Utc};
 use reqwest::Client;
 use serde::Deserialize;
@@ -17,7 +17,7 @@ pub struct Shift {
     role: String,
     message: String,
     #[serde(skip)]
-    pub working_with: Vec<Person>,
+    pub working_with: Vec<Employee>,
 }
 
 impl Shift {
@@ -46,23 +46,21 @@ impl Shift {
             }
         }
 
-        return (
+        (
             foh_lunch_total,
             foh_dinner_total,
             boh_lunch_total,
             boh_dinner_total,
-        );
+        )
     }
 
     fn format_time(&self) -> String {
-        let start_time = self.start;
-        let end_time = self.end;
         format!(
             "{}:{:02} - {}:{:02}",
-            start_time.hour(),
-            start_time.minute(),
-            end_time.hour(),
-            end_time.minute()
+            self.start.hour(),
+            self.start.minute(),
+            self.end.hour(),
+            self.end.minute()
         )
     }
     fn time_diff(&self) -> String {
@@ -105,7 +103,7 @@ impl Shift {
         let boh = self
             .working_with
             .iter()
-            .filter(|p| p.is_foh())
+            .filter(|p| !p.is_foh())
             .map(|c| {
                 format!(
                     "{} - {} {} {}",
@@ -120,6 +118,8 @@ impl Shift {
 
         let (fl, fd, bl, bd) = self.section_totals();
 
+        let now = Utc::now();
+
         format!(
             r#"{my_times} ({my_length})
 {my_role}{message}
@@ -129,8 +129,33 @@ FOH ({fl} lunch, {fd} dinner):
 
 BOH ({bl} lunch, {bd} dinner):
 {boh}
+
+Last updated {now}.
 "#
         )
     }
-}
 
+    pub async fn get_working_with(&mut self, client: &Client) -> &Vec<Employee> {
+        let url = format!(
+            "https://api.fourth.com/api/myschedules/shifts/{}/workingwith",
+            self.id
+        );
+        self.working_with = client
+            .get(url)
+            .send()
+            .await
+            .expect("Expected a result")
+            .json::<serde_json::Value>()
+            .await
+            .expect("Expected json response")
+            .as_array()
+            .expect("Colleagues should be an array")
+            .iter()
+            .map(|p| serde_json::from_value(p.clone()).expect("Expected person"))
+            .collect();
+        self.working_with.sort_by(|a, b| a.start.cmp(&b.start));
+        self.working_with.sort_by(|a, b| a.name.cmp(&b.name));
+        self.working_with.sort_by(|a, b| a.role.cmp(&b.role));
+        &self.working_with
+    }
+}

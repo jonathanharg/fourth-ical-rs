@@ -1,29 +1,28 @@
 use chrono::{DateTime, Utc};
-use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_plain::derive_display_from_serialize;
 
 #[derive(Deserialize, Debug)]
-pub struct Person {
-    id: u32,
+pub struct Employee {
+    // id: u32,
     #[serde(rename = "employeeName")]
     pub name: String,
     pub role: Role,
-    #[serde(rename = "shiftStartDateTime", with = "colleague_date_format")]
+    #[serde(rename = "shiftStartDateTime", with = "date_format")]
     pub start: DateTime<Utc>,
-    #[serde(rename = "shiftEndDateTime", with = "colleague_date_format")]
+    #[serde(rename = "shiftEndDateTime", with = "date_format")]
     pub end: DateTime<Utc>,
-    #[serde(rename = "sameRole")]
-    same_role: bool,
-    #[serde(rename = "sameShift")]
-    same_shift: bool,
+    // #[serde(rename = "sameRole")]
+    // same_role: bool,
+    // #[serde(rename = "sameShift")]
+    // same_shift: bool,
 }
 
-mod colleague_date_format {
+mod date_format {
     use chrono::{DateTime, TimeZone, Utc};
     use serde::{self, Deserialize, Deserializer};
 
-    const FORMAT: &'static str = "%Y-%m-%dT%H:%M:%S";
+    const FORMAT: &str = "%Y-%m-%dT%H:%M:%S";
 
     pub fn deserialize<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
     where
@@ -59,10 +58,8 @@ pub enum Role {
 
 derive_display_from_serialize!(Role);
 
-impl Person {
+impl Employee {
     pub fn is_foh(&self) -> bool {
         matches!(self.role, Role::GM | Role::AM | Role::SU | Role::FOH)
     }
 }
-
-

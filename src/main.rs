@@ -1,13 +1,12 @@
 // #![allow(dead_code, unused_variables)]
-mod colleagues;
+mod employee;
 mod login;
 mod shift;
 use axum::{routing::get, Router};
-use chrono::{DateTime, Datelike, Duration, NaiveTime, Timelike, Utc};
-use colleagues::Person;
+use chrono::{Datelike, Duration, Utc};
+use employee::Employee;
 use icalendar::{Calendar, Component, Event, EventLike};
 use reqwest::{cookie::Jar, Client};
-use serde::Deserialize;
 use shift::Shift;
 use std::sync::Arc;
 use urlencoding::encode;
@@ -88,7 +87,7 @@ async fn get_shifts(client: &Client) -> Result<Vec<Shift>, reqwest::Error> {
         .collect();
 
     for shift in &mut shifts {
-        shift.working_with = working_with(client, &shift.id).await;
+        shift.get_working_with(client).await;
     }
 
     Ok(shifts)
@@ -107,28 +106,4 @@ fn shifts_to_ical(shifts: Vec<Shift>) -> String {
         calendar.push(event);
     }
     calendar.to_string()
-}
-
-pub async fn working_with(client: &Client, shift_id: &u32) -> Vec<Person> {
-    let url = format!(
-        "https://api.fourth.com/api/myschedules/shifts/{}/workingwith",
-        shift_id
-    );
-    let mut people: Vec<Person> = client
-        .get(url)
-        .send()
-        .await
-        .expect("Expected a result")
-        .json::<serde_json::Value>()
-        .await
-        .expect("Expected json response")
-        .as_array()
-        .expect("Colleagues should be an array")
-        .iter()
-        .map(|p| serde_json::from_value(p.clone()).expect("Expected person"))
-        .collect();
-    people.sort_by(|a, b| a.start.cmp(&b.start));
-    people.sort_by(|a, b| a.name.cmp(&b.name));
-    people.sort_by(|a, b| a.role.cmp(&b.role));
-    people
 }
