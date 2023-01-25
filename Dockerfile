@@ -21,7 +21,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /fourth-ical-rs/target/release/fourth-ical-rs /fourth-ical-rs
-EXPOSE 8787 
+EXPOSE 7878
 
 CMD ["/fourth-ical-rs"]
 
