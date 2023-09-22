@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc, FixedOffset};
+use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use serde_plain::derive_display_from_serialize;
 
@@ -24,8 +24,7 @@ mod date_format {
         D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
-        DateTime::parse_from_str(&s, FORMAT)
-            .map_err(serde::de::Error::custom)
+        DateTime::parse_from_str(&s, FORMAT).map_err(serde::de::Error::custom)
     }
 }
 

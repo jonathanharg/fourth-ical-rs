@@ -5,7 +5,7 @@ mod shift;
 use chrono::{Datelike, Duration, Utc};
 use employee::Employee;
 use icalendar::{Calendar, Component, Event, EventLike};
-use reqwest::{Client};
+use reqwest::Client;
 use shift::Shift;
 
 use urlencoding::encode;

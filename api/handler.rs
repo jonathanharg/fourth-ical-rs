@@ -23,4 +23,3 @@ pub async fn handler(_req: Request) -> Result<Response<Body>, Error> {
         .header("Content-Type", "text/calendar")
         .body(shifts_to_ical(shifts).into())?)
 }
-
