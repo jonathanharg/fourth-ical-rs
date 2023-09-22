@@ -158,4 +158,3 @@ pub async fn get_cookie(client: &Client) {
     println!("Cookie recieved!")
     // l7auth_prod cookie has now been set on client.
 }
-

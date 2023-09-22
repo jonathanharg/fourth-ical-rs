@@ -4,7 +4,6 @@ use serde_plain::derive_display_from_serialize;
 
 #[derive(Deserialize, Debug)]
 pub struct Employee {
-    // id: u32,
     #[serde(rename = "employeeName")]
     pub name: String,
     pub role: Role,
@@ -12,10 +11,6 @@ pub struct Employee {
     pub start: DateTime<Utc>,
     #[serde(rename = "shiftEndDateTime", with = "date_format")]
     pub end: DateTime<Utc>,
-    // #[serde(rename = "sameRole")]
-    // same_role: bool,
-    // #[serde(rename = "sameShift")]
-    // same_shift: bool,
 }
 
 mod date_format {
@@ -34,6 +29,7 @@ mod date_format {
     }
 }
 
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Deserialize, Serialize)]
 pub enum Role {
     #[serde(rename(deserialize = "Zizzi General Manager"))]
