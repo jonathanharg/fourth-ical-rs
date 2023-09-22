@@ -1,13 +1,13 @@
 mod employee;
 pub mod login;
 mod shift;
-use axum::{routing::get, Router};
+
 use chrono::{Datelike, Duration, Utc};
 use employee::Employee;
 use icalendar::{Calendar, Component, Event, EventLike};
-use reqwest::{cookie::Jar, Client};
+use reqwest::{Client};
 use shift::Shift;
-use std::sync::Arc;
+
 use urlencoding::encode;
 
 fn shift_api_url() -> String {
