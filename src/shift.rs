@@ -148,12 +148,12 @@ Last updated {now}.
             .json::<serde_json::Value>()
             .await
             .expect("Expected json response")
+            .as_array()
             .map(|p| {
                 print!("JSON RESPONSE:");
                 print!("{:#?}", p);
                 p
             })
-            .as_array()
             .expect("Colleagues should be an array")
             .iter()
             .map(|p| serde_json::from_value(p.clone()).expect("Expected person"))
