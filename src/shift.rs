@@ -84,55 +84,56 @@ impl Shift {
             }
         };
 
-        let foh = self
-            .working_with
-            .iter()
-            .filter(|p| p.is_foh())
-            .map(|c| {
-                format!(
-                    "{} - {} {} {}",
-                    c.start.format("%H:%M"),
-                    c.end.format("%H:%M"),
-                    c.name,
-                    c.role
-                )
-            })
-            .collect::<Vec<String>>()
-            .join("\n");
+        // let foh = self
+        //     .working_with
+        //     .iter()
+        //     .filter(|p| p.is_foh())
+        //     .map(|c| {
+        //         format!(
+        //             "{} - {} {} {}",
+        //             c.start.format("%H:%M"),
+        //             c.end.format("%H:%M"),
+        //             c.name,
+        //             c.role
+        //         )
+        //     })
+        //     .collect::<Vec<String>>()
+        //     .join("\n");
 
-        let boh = self
-            .working_with
-            .iter()
-            .filter(|p| !p.is_foh())
-            .map(|c| {
-                format!(
-                    "{} - {} {} {}",
-                    c.start.format("%H:%M"),
-                    c.end.format("%H:%M"),
-                    c.name,
-                    c.role
-                )
-            })
-            .collect::<Vec<String>>()
-            .join("\n");
+        // let boh = self
+        //     .working_with
+        //     .iter()
+        //     .filter(|p| !p.is_foh())
+        //     .map(|c| {
+        //         format!(
+        //             "{} - {} {} {}",
+        //             c.start.format("%H:%M"),
+        //             c.end.format("%H:%M"),
+        //             c.name,
+        //             c.role
+        //         )
+        //     })
+        //     .collect::<Vec<String>>()
+        //     .join("\n");
 
         let (fl, fd, bl, bd) = self.section_totals();
 
         let now = Utc::now();
 
-        format!(
-            r#"{my_times} ({my_length})
-{my_role}{message}
+//         format!(
+//             r#"{my_times} ({my_length})
+// {my_role}{message}
 
-FOH ({fl} lunch, {fd} dinner):
-{foh}
+// FOH ({fl} lunch, {fd} dinner):
+// {foh}
 
-BOH ({bl} lunch, {bd} dinner):
-{boh}
+// BOH ({bl} lunch, {bd} dinner):
+// {boh}
 
-Last updated {now}.
-"#
-        )
+// Last updated {now}.
+// "#
+//         )
+        format!("Null")
     }
 
     pub async fn get_working_with(&mut self, client: &Client) -> &Vec<Employee> {
