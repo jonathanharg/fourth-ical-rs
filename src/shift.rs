@@ -84,83 +84,82 @@ impl Shift {
             }
         };
 
-        // let foh = self
-        //     .working_with
-        //     .iter()
-        //     .filter(|p| p.is_foh())
-        //     .map(|c| {
-        //         format!(
-        //             "{} - {} {} {}",
-        //             c.start.format("%H:%M"),
-        //             c.end.format("%H:%M"),
-        //             c.name,
-        //             c.role
-        //         )
-        //     })
-        //     .collect::<Vec<String>>()
-        //     .join("\n");
+        let foh = self
+            .working_with
+            .iter()
+            .filter(|p| p.is_foh())
+            .map(|c| {
+                format!(
+                    "{} - {} {} {}",
+                    c.start.format("%H:%M"),
+                    c.end.format("%H:%M"),
+                    c.name,
+                    c.role
+                )
+            })
+            .collect::<Vec<String>>()
+            .join("\n");
 
-        // let boh = self
-        //     .working_with
-        //     .iter()
-        //     .filter(|p| !p.is_foh())
-        //     .map(|c| {
-        //         format!(
-        //             "{} - {} {} {}",
-        //             c.start.format("%H:%M"),
-        //             c.end.format("%H:%M"),
-        //             c.name,
-        //             c.role
-        //         )
-        //     })
-        //     .collect::<Vec<String>>()
-        //     .join("\n");
+        let boh = self
+            .working_with
+            .iter()
+            .filter(|p| !p.is_foh())
+            .map(|c| {
+                format!(
+                    "{} - {} {} {}",
+                    c.start.format("%H:%M"),
+                    c.end.format("%H:%M"),
+                    c.name,
+                    c.role
+                )
+            })
+            .collect::<Vec<String>>()
+            .join("\n");
 
         let (fl, fd, bl, bd) = self.section_totals();
 
         let now = Utc::now();
 
-//         format!(
-//             r#"{my_times} ({my_length})
-// {my_role}{message}
+        format!(
+            r#"{my_times} ({my_length})
+{my_role}{message}
 
-// FOH ({fl} lunch, {fd} dinner):
-// {foh}
+FOH ({fl} lunch, {fd} dinner):
+{foh}
 
-// BOH ({bl} lunch, {bd} dinner):
-// {boh}
+BOH ({bl} lunch, {bd} dinner):
+{boh}
 
-// Last updated {now}.
-// "#
-//         )
-        format!("Null")
+Last updated {now}.
+"#
+        )
     }
 
-    pub async fn get_working_with(&mut self, client: &Client) -> &Vec<Employee> {
-        let url = format!(
-            "https://api.fourth.com/api/myschedules/shifts/{}/workingwith",
-            self.id
-        );
-        self.working_with = client
-            .get(url)
-            .send()
-            .await
-            .expect("Expected a result")
-            .json::<serde_json::Value>()
-            .await
-            .expect("Expected json response")
-            .as_array()
-            .expect("Colleagues should be an array")
-            .iter()
-            .map(|p| {
-                print!("{:#?}", p);
-                p
-            })
-            .map(|p| serde_json::from_value(p.clone()).expect("Expected person"))
-            .collect();
-        self.working_with.sort_by(|a, b| a.start.cmp(&b.start));
-        self.working_with.sort_by(|a, b| a.name.cmp(&b.name));
-        self.working_with.sort_by(|a, b| a.role.cmp(&b.role));
-        &self.working_with
-    }
+    // pub async fn get_working_with(&mut self, client: &Client) -> &Vec<Employee> {
+    //     let url = format!(
+    //         "https://api.fourth.com/api/myschedules/shifts/{}/workingwith",
+    //         self.id
+    //     );
+    //     self.working_with = client
+    //         .get(url)
+    //         .send()
+    //         .await
+    //         .expect("Expected a result")
+    //         .json::<serde_json::Value>()
+    //         .await
+    //         .expect("Expected json response")
+    //         .as_array()
+    //         .expect("Colleagues should be an array")
+    //         .iter()
+    //         .map(|p| {
+    //             print!("{:#?}", p);
+    //             p
+    //         })
+    //         .map(|p| serde_json::from_value(p.clone()).expect("Expected person"))
+    //         .collect();
+    //     self.working_with.sort_by(|a, b| a.start.cmp(&b.start));
+    //     self.working_with.sort_by(|a, b| a.name.cmp(&b.name));
+    //     self.working_with.sort_by(|a, b| a.role.cmp(&b.role));
+    //     &self.working_with
+    // }
 }
