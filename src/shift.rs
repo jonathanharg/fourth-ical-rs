@@ -156,8 +156,8 @@ Last updated {now}.
                 match serde_json::from_value(p.clone()) {
                     Ok(r) => r,
                     Err(e) => {
-                        print!("Errored on {:#?}", p);
-                        print!("Msg: {}", e);
+                        println!("Errored on {:#?}", p);
+                        println!("Msg: {}", e);
                         panic!();
                     }
                 }

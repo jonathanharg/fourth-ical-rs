@@ -45,8 +45,6 @@ pub async fn get_shifts(client: &Client) -> Result<Vec<Shift>, reqwest::Error> {
             .unwrap()
         })
         .collect();
-    
-    print!("{:#?}", shifts);
 
     for shift in &mut shifts {
         shift.get_working_with(client).await;
