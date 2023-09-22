@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Utc, FixedOffset};
 use serde::{Deserialize, Serialize};
 use serde_plain::derive_display_from_serialize;
 
@@ -8,23 +8,23 @@ pub struct Employee {
     pub name: String,
     pub role: Role,
     #[serde(rename = "shiftStartDateTime", with = "date_format")]
-    pub start: DateTime<Utc>,
+    pub start: DateTime<FixedOffset>,
     #[serde(rename = "shiftEndDateTime", with = "date_format")]
-    pub end: DateTime<Utc>,
+    pub end: DateTime<FixedOffset>,
 }
 
 mod date_format {
-    use chrono::{DateTime, TimeZone, Utc};
+    use chrono::{DateTime, FixedOffset};
     use serde::{self, Deserialize, Deserializer};
 
     const FORMAT: &str = "%Y-%m-%dT%H:%M:%S";
 
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<DateTime<FixedOffset>, D::Error>
     where
         D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
-        Utc.datetime_from_str(&s, FORMAT)
+        DateTime::parse_from_str(&s, FORMAT)
             .map_err(serde::de::Error::custom)
     }
 }
