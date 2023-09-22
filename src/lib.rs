@@ -1,5 +1,5 @@
 mod employee;
-mod login;
+pub mod login;
 mod shift;
 use axum::{routing::get, Router};
 use chrono::{Datelike, Duration, Utc};
@@ -9,45 +9,6 @@ use reqwest::{cookie::Jar, Client};
 use shift::Shift;
 use std::sync::Arc;
 use urlencoding::encode;
-
-#[tokio::main]
-async fn main() {
-    let jar = Arc::new(Jar::default());
-    let client = reqwest::Client::builder()
-        .cookie_provider(jar)
-        .cookie_store(true)
-        .build()
-        .unwrap();
-    login::get_cookie(&client).await;
-    println!("Created client");
-    let app = Router::new().route(
-        "/work.ical",
-        get(|| async {
-            let client = client;
-            println!("GET Request for shifts");
-            match get_shifts(&client).await {
-                Ok(shifts) => {
-                    println!("Responding with ical");
-                    shifts_to_ical(shifts)
-                }
-                Err(_) => {
-                    login::get_cookie(&client).await;
-                    let shifts = get_shifts(&client)
-                        .await
-                        .expect("Expected second attempt will log in");
-                    println!("Responding with ical");
-                    shifts_to_ical(shifts)
-                }
-            }
-        }),
-    );
-
-    println!("Listening for requests on 0.0.0.0:7878/work.ical...");
-    axum::Server::bind(&"0.0.0.0:7878".parse().unwrap())
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
-}
 
 fn shift_api_url() -> String {
     // Format YYYY/MM/DD
@@ -61,7 +22,7 @@ fn shift_api_url() -> String {
     format!("https://api.fourth.com/api/myschedules/schedule?%24orderby=StartDateTime+asc&%24top=50&fromDate={}&toDate={}", from, to)
 }
 
-async fn get_shifts(client: &Client) -> Result<Vec<Shift>, reqwest::Error> {
+pub async fn get_shifts(client: &Client) -> Result<Vec<Shift>, reqwest::Error> {
     let url = shift_api_url();
     let mut shifts: Vec<Shift> = client
         .get(url)
@@ -92,7 +53,7 @@ async fn get_shifts(client: &Client) -> Result<Vec<Shift>, reqwest::Error> {
     Ok(shifts)
 }
 
-fn shifts_to_ical(shifts: Vec<Shift>) -> String {
+pub fn shifts_to_ical(shifts: Vec<Shift>) -> String {
     let mut calendar = Calendar::new();
     for shift in shifts {
         let event = Event::new()
