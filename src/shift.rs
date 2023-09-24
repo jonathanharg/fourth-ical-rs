@@ -1,5 +1,5 @@
 use crate::Employee;
-use chrono::{DateTime, NaiveTime, Timelike, Utc, FixedOffset};
+use chrono::{NaiveTime, Timelike, Utc, NaiveDateTime};
 use reqwest::Client;
 use serde::Deserialize;
 
@@ -8,9 +8,9 @@ pub struct Shift {
     #[serde(rename = "itemId")]
     pub id: u32,
     #[serde(rename = "startDateTime")]
-    pub start: DateTime<FixedOffset>,
+    pub start: NaiveDateTime,
     #[serde(rename = "endDateTime")]
-    pub end: DateTime<FixedOffset>,
+    pub end: NaiveDateTime,
     #[serde(rename = "locationName")]
     pub location: String,
     #[serde(rename = "roleName")]
