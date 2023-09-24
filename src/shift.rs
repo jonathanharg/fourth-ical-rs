@@ -151,17 +151,7 @@ Last updated {now}.
             .as_array()
             .expect("Colleagues should be an array")
             .iter()
-            // .map(|p| serde_json::from_value(p.clone()).expect("Expected person"))
-            .map(|p| {
-                match serde_json::from_value(p.clone()) {
-                    Ok(r) => r,
-                    Err(e) => {
-                        println!("Errored on {:#?}", p);
-                        println!("Msg: {}", e);
-                        panic!();
-                    }
-                }
-                })
+            .map(|p| serde_json::from_value(p.clone()).expect("Expected person"))
             .collect();
         self.working_with.sort_by(|a, b| a.start.cmp(&b.start));
         self.working_with.sort_by(|a, b| a.name.cmp(&b.name));

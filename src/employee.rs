@@ -1,4 +1,4 @@
-use chrono::{DateTime, FixedOffset};
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use serde_plain::derive_display_from_serialize;
 
@@ -7,25 +7,10 @@ pub struct Employee {
     #[serde(rename = "employeeName")]
     pub name: String,
     pub role: Role,
-    #[serde(rename = "shiftStartDateTime", with = "date_format")]
-    pub start: DateTime<FixedOffset>,
-    #[serde(rename = "shiftEndDateTime", with = "date_format")]
-    pub end: DateTime<FixedOffset>,
-}
-
-mod date_format {
-    use chrono::{DateTime, FixedOffset};
-    use serde::{self, Deserialize, Deserializer};
-
-    const FORMAT: &str = "%Y-%m-%dT%H:%M:%S";
-
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<DateTime<FixedOffset>, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-        DateTime::parse_from_str(&s, FORMAT).map_err(serde::de::Error::custom)
-    }
+    #[serde(rename = "shiftStartDateTime")]
+    pub start: NaiveDateTime,
+    #[serde(rename = "shiftEndDateTime")]
+    pub end: NaiveDateTime,
 }
 
 #[allow(clippy::upper_case_acronyms)]
