@@ -36,7 +36,7 @@ async fn main() {
         }),
     );
 
-    println!("Listening for requests on 0.0.0.0:7878/work.ical...");
+    println!("Listening for requests on 0.0.0.0:7878/api/calendar...");
     axum::Server::bind(&"0.0.0.0:7878".parse().unwrap())
         .serve(app.into_make_service())
         .await

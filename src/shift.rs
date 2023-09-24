@@ -1,5 +1,5 @@
 use crate::Employee;
-use chrono::{DateTime, NaiveTime, Timelike, Utc, FixedOffset};
+use chrono::{NaiveTime, Timelike, Utc, NaiveDateTime};
 use reqwest::Client;
 use serde::Deserialize;
 
@@ -8,9 +8,9 @@ pub struct Shift {
     #[serde(rename = "itemId")]
     pub id: u32,
     #[serde(rename = "startDateTime")]
-    pub start: DateTime<FixedOffset>,
+    pub start: NaiveDateTime,
     #[serde(rename = "endDateTime")]
-    pub end: DateTime<FixedOffset>,
+    pub end: NaiveDateTime,
     #[serde(rename = "locationName")]
     pub location: String,
     #[serde(rename = "roleName")]
@@ -151,17 +151,7 @@ Last updated {now}.
             .as_array()
             .expect("Colleagues should be an array")
             .iter()
-            // .map(|p| serde_json::from_value(p.clone()).expect("Expected person"))
-            .map(|p| {
-                match serde_json::from_value(p.clone()) {
-                    Ok(r) => r,
-                    Err(e) => {
-                        println!("Errored on {:#?}", p);
-                        println!("Msg: {}", e);
-                        panic!();
-                    }
-                }
-                })
+            .map(|p| serde_json::from_value(p.clone()).expect("Expected person"))
             .collect();
         self.working_with.sort_by(|a, b| a.start.cmp(&b.start));
         self.working_with.sort_by(|a, b| a.name.cmp(&b.name));
