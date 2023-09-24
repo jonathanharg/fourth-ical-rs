@@ -1,8 +1,7 @@
-use std::sync::Arc;
 use axum::{routing::get, Router};
-use fourth_ical_rs::{login, get_shifts, shifts_to_ical};
+use fourth_ical_rs::{get_shifts, login, shifts_to_ical};
 use reqwest::cookie::Jar;
-
+use std::sync::Arc;
 
 #[tokio::main]
 async fn main() {
