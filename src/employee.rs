@@ -24,6 +24,8 @@ pub enum Role {
     SU,
     #[serde(rename(deserialize = "Zizzi FOH Team Member"))]
     FOH,
+    #[serde(rename(deserialize = "Zizzi Cleaner"))]
+    CL,
     #[serde(rename(deserialize = "Zizzi Head Chef"))]
     HC,
     #[serde(rename(deserialize = "Zizzi Assistant Chef"))]
@@ -40,6 +42,6 @@ derive_display_from_serialize!(Role);
 
 impl Employee {
     pub fn is_foh(&self) -> bool {
-        matches!(self.role, Role::GM | Role::AM | Role::SU | Role::FOH)
+        matches!(self.role, Role::GM | Role::AM | Role::SU | Role::FOH | Role::CL)
     }
 }
