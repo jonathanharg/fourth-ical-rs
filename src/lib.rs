@@ -58,6 +58,7 @@ pub fn shifts_to_ical(shifts: Vec<Shift>) -> String {
     for shift in shifts {
         let event = Event::new()
             .summary("Zizzi Shift")
+            .uid(&shift.id.to_string())
             .description(&shift.generate_description())
             .starts(shift.start.naive_utc())
             .ends(shift.end.naive_utc())
