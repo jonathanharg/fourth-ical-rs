@@ -36,12 +36,29 @@ pub enum Role {
     C2,
     #[serde(rename(deserialize = "Zizzi Section Chef 1"))]
     C1,
+    #[serde(rename(deserialize = "Zizzi KP"))]
+    KP,
+    #[serde(other)]
+    Unkown, // Could also be:
+            // London & ROI variants of most non-salaried FOH/BOH roles
+            // Zizzi Bar Staff
+            // Zizzi KP
+            // External User
+            // London / ROI USers
+            // Operations Manager
+            // Zizzi Waiter
+            // Zizzi Holding General Manager
+            // Test User Employee
+            // Test User Manager
 }
 
 derive_display_from_serialize!(Role);
 
 impl Employee {
     pub fn is_foh(&self) -> bool {
-        matches!(self.role, Role::GM | Role::AM | Role::SU | Role::FOH | Role::CL)
+        matches!(
+            self.role,
+            Role::GM | Role::AM | Role::SU | Role::FOH | Role::CL
+        )
     }
 }

@@ -42,7 +42,7 @@ pub async fn get_shifts(client: &Client) -> Result<Vec<Shift>, reqwest::Error> {
                     .expect("Entities should have a properties")
                     .clone(),
             )
-            .unwrap()
+            .expect("Shift cannot be deseralized!")
         })
         .collect();
 

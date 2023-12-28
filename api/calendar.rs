@@ -14,7 +14,7 @@ pub async fn handler(_req: Request) -> Result<Response<Body>, Error> {
         .cookie_provider(jar)
         .cookie_store(true)
         .build()
-        .unwrap();
+        .expect("Failed to create reqwest client");
     login::get_cookie(&client).await;
     let shifts = get_shifts(&client).await?;
     println!("Responding with ical");
